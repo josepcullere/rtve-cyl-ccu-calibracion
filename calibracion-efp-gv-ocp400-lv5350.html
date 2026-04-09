@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calibración EFP · Grass Valley OCP 400 + Leader LV5350</title>
+<style>
+:root{
+  --bg:#0d0f11;
+  --bg2:#13161a;
+  --bg3:#1a1e24;
+  --bg4:#222730;
+  --border:#2a3040;
+  --border2:#364050;
+  --green:#00e87a;
+  --green2:#00b85f;
+  --green-dim:rgba(0,232,122,0.12);
+  --green-glow:rgba(0,232,122,0.06);
+  --amber:#f5a623;
+  --amber-dim:rgba(245,166,35,0.12);
+  --red:#e84040;
+  --red-dim:rgba(232,64,64,0.12);
+  --blue:#4a9eff;
+  --blue-dim:rgba(74,158,255,0.12);
+  --cyan:#00d4ff;
+  --text:#e2e8f0;
+  --text2:#8899aa;
+  --text3:#55667a;
+  --scope-bg:#060810;
+  --scope-grid:rgba(0,200,80,0.1);
+  --scope-line:rgba(0,220,90,0.3);
+  --font-mono:'JetBrains Mono','Cascadia Code','Fira Code','Courier New',monospace;
+  --r:8px;
+  --r2:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.65;min-height:100vh;overflow-x:hidden}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── LAYOUT ── */
+.shell{display:flex;min-height:100vh}
+.sidebar{width:260px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+.main{flex:1;min-width:0;padding:0}
+
+/* ── SIDEBAR ── */
+.sidebar-logo{padding:24px 20px 16px;border-bottom:1px solid var(--border)}
+.sidebar-logo .brand{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--green);font-family:var(--font-mono)}
+.sidebar-logo .title{font-size:13px;color:var(--text2);margin-top:4px;line-height:1.4}
+.sidebar-nav{flex:1;padding:12px 0}
+.nav-section{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);padding:16px 20px 6px;font-family:var(--font-mono)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 20px;cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-decoration:none}
+.nav-item:hover{background:var(--green-glow);color:var(--text)}
+.nav-item.active{background:var(--green-dim);border-left-color:var(--green);color:var(--green)}
+.nav-num{font-size:10px;font-family:var(--font-mono);color:var(--text3);min-width:18px}
+.nav-item.active .nav-num{color:var(--green2)}
+.nav-label{font-size:12px;color:var(--text2)}
+.nav-item.active .nav-label{color:var(--green)}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);font-family:var(--font-mono)}
+
+/* ── HERO ── */
+.hero{background:var(--bg2);border-bottom:1px solid var(--border);padding:52px 64px 48px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--cyan),var(--green));opacity:.6}
+.hero-eyebrow{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-family:var(--font-mono);margin-bottom:14px}
+.hero-title{font-size:32px;font-weight:700;line-height:1.2;color:var(--text);margin-bottom:12px;letter-spacing:-.5px}
+.hero-sub{font-size:15px;color:var(--text2);max-width:600px;line-height:1.6;margin-bottom:28px}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{font-size:11px;font-family:var(--font-mono);padding:4px 10px;border-radius:4px;border:1px solid var(--border2);color:var(--text2);background:var(--bg3)}
+.tag.green{border-color:rgba(0,232,122,.35);color:var(--green);background:var(--green-dim)}
+.tag.amber{border-color:rgba(245,166,35,.35);color:var(--amber);background:var(--amber-dim)}
+
+/* ── SECTION ── */
+.section{padding:52px 64px;border-bottom:1px solid var(--border)}
+.section:last-child{border-bottom:none}
+.section-header{display:flex;align-items:flex-start;gap:20px;margin-bottom:32px}
+.step-badge{width:44px;height:44px;border-radius:10px;background:var(--green-dim);border:1px solid rgba(0,232,122,.3);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--green);font-family:var(--font-mono);flex-shrink:0}
+.section-meta{flex:1}
+.section-eyebrow{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);font-family:var(--font-mono);margin-bottom:4px}
+.section-title{font-size:22px;font-weight:600;color:var(--text);line-height:1.3;letter-spacing:-.3px}
+.section-desc{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:24px}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.gA{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}
+.gB{display:grid;grid-template-columns:.85fr 1.15fr;gap:20px}
+
+/* ── CARDS ── */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:20px 24px}
+.card.accent-green{border-color:rgba(0,232,122,.25);background:linear-gradient(135deg,var(--bg3) 0%,rgba(0,232,122,.04) 100%)}
+.card.accent-amber{border-color:rgba(245,166,35,.25);background:linear-gradient(135deg,var(--bg3) 0%,rgba(245,166,35,.04) 100%)}
+.card.accent-red{border-color:rgba(232,64,64,.25);background:linear-gradient(135deg,var(--bg3) 0%,rgba(232,64,64,.04) 100%)}
+.card-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-family:var(--font-mono);margin-bottom:8px}
+.card-label.green{color:var(--green)}
+.card-label.amber{color:var(--amber)}
+.card-label.red{color:var(--red)}
+.card-label.blue{color:var(--blue)}
+.card-label.cyan{color:var(--cyan)}
+.card-val{font-size:26px;font-weight:700;font-family:var(--font-mono);line-height:1}
+.card-val.green{color:var(--green)}
+.card-val.amber{color:var(--amber)}
+.card-sub{font-size:12px;color:var(--text3);margin-top:4px}
+
+/* ── SCOPE FRAME ── */
+.scope-frame{background:var(--scope-bg);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.scope-titlebar{background:var(--bg3);border-bottom:1px solid var(--border);padding:7px 14px;display:flex;align-items:center;gap:8px}
+.scope-dot{width:7px;height:7px;border-radius:50%}
+.scope-title-text{font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.06em}
+.scope-body{padding:8px}
+canvas{display:block;width:100%;border-radius:4px}
+
+/* ── CHECKLIST ── */
+.checklist{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text2);line-height:1.55}
+.chk-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.chk-dot.g{background:var(--green)}
+.chk-dot.a{background:var(--amber)}
+.chk-dot.r{background:var(--red)}
+
+/* ── OCP PANEL ── */
+.ocp-panel{background:#1c2028;border:1px solid #2e3848;border-radius:var(--r2);padding:20px;position:relative}
+.ocp-panel::before{content:'GRASS VALLEY OCP 400';position:absolute;top:10px;left:14px;font-size:9px;font-family:var(--font-mono);letter-spacing:.18em;color:#3a4a5a;font-weight:700}
+.ocp-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px;justify-content:center}
+.ocp-knob-wrap{display:flex;flex-direction:column;align-items:center;gap:5px}
+.ocp-knob{width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#3a4a5a,#1a2030);border:2px solid #2e3848;position:relative;cursor:default;box-shadow:0 3px 8px rgba(0,0,0,.5)}
+.ocp-knob.active{border-color:var(--green);box-shadow:0 0 10px rgba(0,232,122,.3)}
+.ocp-knob.active::after{content:'';position:absolute;top:50%;left:50%;width:3px;height:14px;background:var(--green);border-radius:2px;transform:translate(-50%,-100%) rotate(var(--deg,0deg));transform-origin:bottom center}
+.ocp-knob::after{content:'';position:absolute;top:50%;left:50%;width:3px;height:14px;background:#4a5a6a;border-radius:2px;transform:translate(-50%,-100%) rotate(var(--deg,0deg));transform-origin:bottom center}
+.ocp-label{font-size:9px;font-family:var(--font-mono);color:var(--text3);text-align:center;letter-spacing:.05em;max-width:50px;line-height:1.3}
+.ocp-label.active{color:var(--green)}
+
+/* ── BADGES / PILLS ── */
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.badge{font-size:11px;font-family:var(--font-mono);padding:3px 9px;border-radius:4px}
+.badge.green{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,232,122,.3)}
+.badge.amber{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.3)}
+.badge.red{background:var(--red-dim);color:var(--red);border:1px solid rgba(232,64,64,.3)}
+.badge.blue{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(74,158,255,.3)}
+.badge.cyan{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.3)}
+
+/* ── CONTROL PATH ── */
+.ctrl-path{font-family:var(--font-mono);font-size:12px;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;padding:8px 14px;color:var(--green);display:inline-block;margin:4px 0}
+.ctrl-arrow{color:var(--text3);margin:0 6px}
+
+/* ── TABLE ── */
+.ref-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.ref-table th{text-align:left;font-size:10px;font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);padding:8px 12px;border-bottom:1px solid var(--border);font-weight:600}
+.ref-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top}
+.ref-table tr:last-child td{border-bottom:none}
+.ref-table td:first-child{font-family:var(--font-mono);color:var(--text);font-size:12px}
+.ref-table tr:hover td{background:var(--bg4)}
+.ok-val{color:var(--green);font-family:var(--font-mono);font-weight:600}
+.warn-val{color:var(--amber);font-family:var(--font-mono);font-weight:600}
+.err-val{color:var(--red);font-family:var(--font-mono);font-weight:600}
+
+/* ── SLIDER CONTROLS ── */
+.ctrl-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.ctrl-row label{font-size:11px;font-family:var(--font-mono);color:var(--text3);min-width:130px}
+.ctrl-row input[type=range]{flex:1;accent-color:var(--green);cursor:pointer}
+.ctrl-readout{font-size:12px;font-family:var(--font-mono);color:var(--green);min-width:44px;text-align:right;font-weight:600}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);margin:24px 0}
+
+/* ── HIGHLIGHT BOX ── */
+.hbox{border-radius:var(--r);padding:16px 20px;margin:16px 0;border-left:3px solid}
+.hbox.green{background:var(--green-dim);border-color:var(--green)}
+.hbox.amber{background:var(--amber-dim);border-color:var(--amber)}
+.hbox.red{background:var(--red-dim);border-color:var(--red)}
+.hbox p{font-size:13px;color:var(--text2);line-height:1.6}
+.hbox strong{color:var(--text)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .sidebar{display:none}
+  .hero,.section{padding:32px 24px}
+  .g2,.g3,.gA,.gB{grid-template-columns:1fr}
+}
+@media print{.sidebar{display:none}.hero,.section{padding:24px 0}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">EFP Calibration Guide</div>
+    <div class="title">GV OCP 400 · Leader LV5350</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Preparación</div>
+    <a class="nav-item active" href="#s0"><span class="nav-num">00</span><span class="nav-label">Introducción</span></a>
+    <a class="nav-item" href="#s1"><span class="nav-num">01</span><span class="nav-label">Sistema y conexiones</span></a>
+    <a class="nav-item" href="#s2"><span class="nav-num">02</span><span class="nav-label">Panel OCP 400</span></a>
+    <a class="nav-item" href="#s3"><span class="nav-num">03</span><span class="nav-label">LV5350 — configuración</span></a>
+    <div class="nav-section">Calibración</div>
+    <a class="nav-item" href="#s4"><span class="nav-num">04</span><span class="nav-label">Nivel de negro</span></a>
+    <a class="nav-item" href="#s5"><span class="nav-num">05</span><span class="nav-label">Nivel de blanco</span></a>
+    <a class="nav-item" href="#s6"><span class="nav-num">06</span><span class="nav-label">Doble diamante</span></a>
+    <a class="nav-item" href="#s7"><span class="nav-num">07</span><span class="nav-label">Calibrar grises</span></a>
+    <a class="nav-item" href="#s8"><span class="nav-num">08</span><span class="nav-label">Saturación y fase</span></a>
+    <div class="nav-section">Multicámara</div>
+    <a class="nav-item" href="#s9"><span class="nav-num">09</span><span class="nav-label">Matching 3 cámaras</span></a>
+    <a class="nav-item" href="#s10"><span class="nav-num">10</span><span class="nav-label">Verificación final</span></a>
+  </div>
+  <div class="sidebar-footer">v1.0 · BT.709 · EBU R103</div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- HERO -->
+<section class="hero" id="s0">
+  <div class="hero-eyebrow">Guía técnica de producción broadcast</div>
+  <h1 class="hero-title">Calibración de 3 cámaras EFP<br>con CCU y osciloscopio</h1>
+  <p class="hero-sub">Proceso completo paso a paso para la preparación, ajuste de señal y matching multicámara usando el panel de operador Grass Valley OCP 400 y el osciloscopio de forma de onda Leader LV5350 con vectorscopio en modo diamante.</p>
+  <div class="hero-tags">
+    <span class="tag green">Grass Valley OCP 400</span>
+    <span class="tag green">Leader LV5350</span>
+    <span class="tag amber">ITU-R BT.709</span>
+    <span class="tag amber">EBU R103</span>
+    <span class="tag">Vectorscopio diamante</span>
+    <span class="tag">Doble diamante</span>
+    <span class="tag">RGB Parade</span>
+    <span class="tag">Calibración HD-SDI</span>
+  </div>
+</section>
+
+<!-- S1 - SISTEMA Y CONEXIONES -->
+<section class="section" id="s1">
+  <div class="section-header">
+    <div class="step-badge">01</div>
+    <div class="section-meta">
+      <div class="section-eyebrow">Preparación del sistema</div>
+      <h2 class="section-title">Conexiones, sincronismo y calentamiento</h2>
+    </div>
+  </div>
+  <p class="section-desc">Antes de cualquier ajuste de señal, el sistema debe estar correctamente cableado, sincronizado y estabilizado térmicamente. Un sistema fuera de genlock producirá lecturas inestables en el LV5350 que harán imposible una calibración precisa.</p>
+
+  <div class="gA" style="margin-bottom:20px">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-label green">Diagrama de señal</div>
+        <div style="font-size:13px;color:var(--text2);line-height:2;margin-top:8px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-family:var(--font-mono);color:var(--cyan);font-size:12px">SYNC GEN</span><span style="color:var(--text3)">──</span><span style="font-family:var(--font-mono);font-size:11px;color:var(--text3)">Tri-level / BB</span><span style="color:var(--text3)">──▶</span><span style="font-family:var(--font-mono);color:var(--amber)">OCP 400</span></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-left:20px"><span style="color:var(--text3)">└──▶</span><span style="font-family:var(--font-mono);color:var(--amber)">CCU CAM 1</span><span style="color:var(--text3)">──SDI──▶</span><span style="font-family:var(--font-mono);color:var(--green)">LV5350 SDI-A</span></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-left:20px"><span style="color:var(--text3)">└──▶</span><span style="font-family:var(--font-mono);color:var(--amber)">CCU CAM 2</span><span style="color:var(--text3)">──SDI──▶</span><span style="font-family:var(--font-mono);color:var(--green)">LV5350 SDI-B</span></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-left:20px"><span style="color:var(--text3)">└──▶</span><span style="font-family:var(--font-mono);color:var(--amber)">CCU CAM 3</span><span style="color:var(--text3)">──SDI──▶</span><span style="font-family:var(--font-mono);color:var(--text3)">via patch</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label amber">Tiempo de calentamiento</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px">
+          <span class="card-val amber">15</span><span style="font-size:14px;color:var(--text2)">min mínimo</span>
+        </div>
+        <div class="card-sub">Cámaras EFP + CCU + LV5350 encendidos</div>
+        <div style="margin-top:12px;font-size:13px;color:var(--text2)">Los circuitos de color derivan hasta ~5% durante el calentamiento. Calibrar antes provoca que los ajustes queden desviados al alcanzar la temperatura de operación.</div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="height:100%">
+        <div class="card-label green">Lista de verificación — conexiones</div>
+        <div class="checklist" style="margin-top:12px">
+          <div class="chk"><div class="chk-dot g"></div><span>Sync generator activo y estable — verificar indicador SYNC LOCK en cada CCU</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Señal de referencia tri-level sync (HD) o black burst (SD) distribuida a todas las CCU</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Cable SDI individual de cada CCU al LV5350 (no distribuir la misma señal)</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>OCP 400 conectado a la CCU master (habitualmente CAM 1) vía cable de datos</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Carta de calibración iluminada de forma uniforme — sin sombras ni reflexos</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Temperatura de color de la fuente de luz conocida y estable (recomendado: 3200K o 5600K según el estándar de rodaje)</span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Confirmar que el iris de cada cámara está en la misma posición (T-stop idéntico para las 3)</span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Desactivar filtros de reducción de ND, detail/enhancement y cualquier proceso de imagen en la CCU</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hbox green"><p><strong>Nota sobre el Grass Valley OCP 400:</strong> El OCP 400 es un panel de operador remoto que se conecta a las CCU de la serie LDK/LDX de Grass Valley. Permite controlar simultáneamente hasta 4 cámaras desde un único panel. Antes de calibrar, asegurarse de que el selector de cámara del OCP está posicionado en la cámara que se está midiendo en el LV5350.</p></div>
+</section>
+
+<!-- S2 - OCP 400 PANEL -->
+<section class="section" id="s2">
+  <div class="section-header">
+    <div class="step-badge">02</div>
+    <div class="section-meta">
+      <div class="section-eyebrow">Equipamiento</div>
+      <h2 class="section-title">Panel Grass Valley OCP 400 — controles de calibración</h2>
+    </div>
+  </div>
+  <p class="section-desc">El OCP 400 agrupa los controles de ajuste de imagen en secciones lógicas. Los controles de calibración de color se dividen en dos grupos: ajustes de nivel (negro/blanco) y ajustes de color (balance, saturación, fase). Conocer la ubicación y función de cada control antes de empezar evita errores durante la calibración.</p>
+
+  <div class="ocp-panel" style="margin-bottom:20px">
+    <div class="ocp-row">
+      <div class="ocp-knob-wrap">
+        <div class="ocp-knob" style="--deg:-30deg"></div>
+        <div class="ocp-label">MASTER<br>BLACK</div>
+      </div>
+      <div class="ocp-knob-wrap">
+        <div class="ocp-knob" style="--deg:10deg"></div>
+        <div class="ocp-label">MASTER<br>GAIN</div>
+      </div>
+      <div style="width:1px;background:var(--border2);margin:0 8px;align-self:stretch"></div>
+      <div class="ocp-knob-wrap">
+        <div class="ocp-knob active" style="--deg:-15deg"></div>
+        <div class="ocp-label active">R-B<br>BLACK</div>
+      </div>
+      <div class="ocp-knob-wrap">
+        <div class="ocp-knob active" style="--deg:20deg"></div>
+        <div class="ocp-label active">G-B<br>BLACK</div>
+      </div>
+      <div class="ocp-knob-wrap">
+        <div class="ocp-knob" style="--deg:5deg"></div>
+        <div class="ocp-label">R-B<br>WHITE</div>
+      </div>
+      <div class="ocp-knob-wrap">
+        <div class="ocp-knob" style="--deg:-5deg"></div>
+        <div class="ocp-label">G-B<br>WHITE</div>
+      </div>
+      <div style="width:1px;background:var(--border2);margin:0 8px;align-self:stretch"></div>
+      <div class="ocp-knob-wrap">
+        <div class="ocp-knob" style="--deg:0deg"></div>
+        <div class="ocp-label">COLOUR<br>GAIN</div>
+      </div>
+      <div class="ocp-knob-wrap">
+        <div class="ocp-knob" style="--deg:0deg"></div>
+        <div class="ocp-label">HUE /<br>PHASE</div>
+      </div>
+      <div style="width:1px;background:var(--border2);margin:0 8px;align-self:stretch"></div>
+      <div class="ocp-knob-wrap">
+        <div class="ocp-knob" style="--deg:15deg"></div>
+        <div class="ocp-label">IRIS /<br>GAIN</div>
+      </div>
+      <div class="ocp-knob-wrap">
+        <div class="ocp-knob" style="--deg:-10deg"></div>
+        <div class="ocp-label">DETAIL<br>LEVEL</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:16px;margin-top:18px">
+      <div style="font-size:9px;font-family:var(--font-mono);color:rgba(0,232,122,.4);letter-spacing:.08em">● ACTIVE CAM INDICATOR</div>
+      <div style="font-size:9px;font-family:var(--font-mono);color:#3a4a5a;letter-spacing:.08em">CAM SEL: [1] [2] [3] [4]</div>
+    </div>
+  </div>
+
+  <table class="ref-table">
+    <thead>
+      <tr><th>Control OCP 400</th><th>Función</th><th>Efecto en LV5350</th><th>Paso</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>MASTER BLACK</td><td>Nivel de pedestal (negro) de los 3 canales R, G, B simultáneamente</td><td>Sube/baja toda la traza en el waveform. En vectorscopio: mueve el punto central hacia/desde el origen</td><td class="ok-val">Paso 04</td></tr>
+      <tr><td>MASTER GAIN</td><td>Ganancia de luminancia global. Controla el nivel de blanco (100 IRE)</td><td>Expande/contrae la traza en el waveform. No afecta el vectorscopio significativamente si el balance es correcto</td><td class="ok-val">Paso 05</td></tr>
+      <tr><td>R-B BLACK</td><td>Balance diferencial rojo–azul en el negro. Desplaza el punto de negro en el eje Cr del vectorscopio</td><td>Mueve el punto de negro horizontalmente en el vectorscopio diamante. Afecta el canal R del RGB Parade en el negro</td><td class="ok-val">Paso 07</td></tr>
+      <tr><td>G-B BLACK</td><td>Balance diferencial verde–azul en el negro. Desplaza el punto de negro en el eje Cb</td><td>Mueve el punto de negro verticalmente en el vectorscopio diamante. Afecta el canal G del RGB Parade en el negro</td><td class="ok-val">Paso 07</td></tr>
+      <tr><td>R-B WHITE</td><td>Balance diferencial rojo–azul en el blanco. Ajusta la temperatura de color del blanco en el eje Cr</td><td>Desplaza el extremo superior del eje de grises en el vectorscopio. Afecta el canal R en el RGB Parade en el blanco</td><td class="ok-val">Paso 07</td></tr>
+      <tr><td>G-B WHITE</td><td>Balance diferencial verde–azul en el blanco. Ajusta el tint verde/magenta del blanco</td><td>Desplaza el extremo superior del eje de grises verticalmente. Afecta el canal G en el blanco</td><td class="ok-val">Paso 07</td></tr>
+      <tr><td>COLOUR GAIN</td><td>Ganancia de crominancia global — controla la saturación de todos los colores</td><td>Expande/contrae el diamante de color en el vectorscopio radialmente desde el centro</td><td class="ok-val">Paso 08</td></tr>
+      <tr><td>HUE / PHASE</td><td>Fase de color (hue) global — rota toda la traza de color</td><td>Gira el diamante de color en el vectorscopio. Un error de fase visible ya supera los ±5°</td><td class="ok-val">Paso 08</td></tr>
+    </tbody>
+  </table>
+
+  <div class="hbox amber" style="margin-top:20px"><p><strong>Importante — selector de cámara OCP 400:</strong> El OCP 400 controla una cámara a la vez. Antes de ajustar cualquier control, verificar que el selector de cámara del panel está en la cámara correcta (CAM 1, 2 o 3) y que el LV5350 está mostrando la misma cámara en su entrada SDI. Un error de selección puede resultar en calibrar la cámara equivocada.</p></div>
+</section>
+
+<!-- S3 - LV5350 CONFIG -->
+<section class="section" id="s3">
+  <div class="section-header">
+    <div class="step-badge">03</div>
+    <div class="section-meta">
+      <div class="section-eyebrow">Instrumentación</div>
+      <h2 class="section-title">Leader LV5350 — configuración inicial del vectorscopio diamante</h2>
+    </div>
+  </div>
+  <p class="section-desc">El LV5350 combina pantalla táctil de 7" con botones físicos y perilla en el panel frontal. Para esta calibración se utilizará el vectorscopio en modo Diamond y el waveform en modo Y+RGB Parade. Con la opción SER26 (layout personalizable) se pueden visualizar ambos instrumentos simultáneamente.</p>
+
+  <div class="g2" style="margin-bottom:20px">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-label cyan">Activar vectorscopio diamante</div>
+        <div class="checklist" style="margin-top:8px">
+          <div class="chk"><div class="chk-dot g"></div><span>Pulsar botón físico <strong>VECTOR</strong> en el panel frontal del LV5350</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Tocar el área del vectorscopio en la pantalla táctil → aparece menú contextual flotante</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Seleccionar <strong>Type → Diamond</strong></span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Seleccionar <strong>Scale → ITU-R BT.709</strong> (para HD)</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Seleccionar <strong>Color Bar Saturation → 100%</strong> (EBU PAL/HD)</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Activar <strong>IQ Axis → ON</strong> para ver los ejes Cr/Cb</span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Activar <strong>Target Boxes → ON</strong> para ver los cuadrados de referencia EBU</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label cyan">Activar waveform RGB Parade</div>
+        <div class="checklist" style="margin-top:8px">
+          <div class="chk"><div class="chk-dot g"></div><span>Pulsar botón <strong>WFM</strong> en el panel frontal</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Tocar área waveform → menú contextual</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Seleccionar <strong>Display → RGB Parade</strong></span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Escala: <strong>IRE</strong> o <strong>mV</strong> según preferencia</span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Con SER26: arrastrar los displays para colocar vectorscopio y waveform lado a lado</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="scope-frame">
+        <div class="scope-titlebar">
+          <div class="scope-dot" style="background:#4af"></div>
+          <span class="scope-title-text">LV5350 · VECTOR · DIAMOND · BT.709 · 100% EBU — Layout objetivo</span>
+        </div>
+        <div class="scope-body">
+          <canvas id="cv-setup" width="360" height="300"></canvas>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div class="card"><div class="card-label cyan">Estándar</div><div style="font-size:13px;color:var(--text);font-family:var(--font-mono);margin-top:4px">BT.709 HD</div></div>
+        <div class="card"><div class="card-label cyan">Escala</div><div style="font-size:13px;color:var(--text);font-family:var(--font-mono);margin-top:4px">100% EBU</div></div>
+        <div class="card"><div class="card-label cyan">Modo</div><div style="font-size:13px;color:var(--text);font-family:var(--font-mono);margin-top:4px">Diamond</div></div>
+      </div>
+    </div>
+  </div>
+
+  <table class="ref-table">
+    <thead><tr><th>Botón físico LV5350</th><th>Función</th><th>Uso en calibración</th></tr></thead>
+    <tbody>
+      <tr><td>VECTOR</td><td>Abre/activa el display vectorscopio</td><td>Activar el vectorscopio diamante</td></tr>
+      <tr><td>WFM</td><td>Abre/activa el waveform monitor</td><td>Verificar niveles de negro y blanco en IRE</td></tr>
+      <tr><td>INPUT</td><td>Selecciona la entrada activa (SDI A / SDI B)</td><td>Alternar entre cámaras para el matching</td></tr>
+      <tr><td>CURSOR + perilla</td><td>Posiciona el cursor de medición sobre la traza</td><td>Medir Cr/Cb exacto de cada chip de gris</td></tr>
+      <tr><td>CAPTURE (USB)</td><td>Guarda captura de pantalla en USB</td><td>Documentar el estado calibrado como referencia</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<!-- S4 - NEGRO -->
+<section class="section" id="s4">
+  <div class="section-header">
+    <div class="step-badge">04</div>
+    <div class="section-meta">
+      <div class="section-eyebrow">Calibración de señal</div>
+      <h2 class="section-title">Ajuste del nivel de negro (pedestal)</h2>
+    </div>
+  </div>
+  <p class="section-desc">El nivel de negro establece el punto de referencia más bajo de la señal de video. En BT.709 HD el negro se sitúa en 0 IRE (64 código de 10 bits). Un pedestal incorrecto afecta a todos los ajustes posteriores — es el primer paso obligatorio de la calibración.</p>
+
+  <div class="gA" style="margin-bottom:20px">
+    <div>
+      <div class="card accent-green" style="margin-bottom:16px">
+        <div class="card-label green">Valores de referencia</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+          <div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-bottom:3px">BT.709 / HD</div><div class="card-val green">0 IRE</div></div>
+          <div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-bottom:3px">NTSC legacy</div><div class="card-val amber">7.5 IRE</div></div>
+          <div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-bottom:3px">10-bit código</div><div class="card-val green">64</div></div>
+          <div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-bottom:3px">Tolerancia</div><div class="card-val green">±0.5 IRE</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label amber">Control OCP 400</div>
+        <div class="ctrl-path" style="display:block;margin-top:8px">MASTER BLACK</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.6">Girar lentamente. Cada clic del encoder equivale aproximadamente a 0.3–0.5 IRE. La perilla del OCP 400 tiene un "detent" (punto de reposo) en el valor nominal de fábrica.</div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div class="card-label green">Procedimiento paso a paso</div>
+        <div class="checklist" style="margin-top:8px">
+          <div class="chk"><div class="chk-dot g"></div><span>Cerrar completamente el iris de la cámara o cubrir el objetivo con el capuchón</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>En el LV5350: activar waveform en modo Y o RGB Parade</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>La traza debe aparecer como una línea horizontal plana en la parte inferior</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Ajustar <strong>MASTER BLACK</strong> en OCP 400 hasta que la línea quede exactamente en 0 IRE</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Verificar simultáneamente en vectorscopio: el punto debe estar en el origen {Cr=0, Cb=0}</span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Verificar los 3 canales por separado en RGB Parade — los tres deben coincidir en 0 IRE</span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Repetir para CAM 2 y CAM 3 cambiando el selector de cámara en el OCP 400 y la entrada en el LV5350</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="scope-frame" style="margin-bottom:12px">
+        <div class="scope-titlebar">
+          <div class="scope-dot" style="background:#4f4"></div>
+          <span class="scope-title-text">WAVEFORM · Y · iris cerrado · negro ajustado</span>
+        </div>
+        <div class="scope-body">
+          <canvas id="cv-black-wf" width="320" height="160"></canvas>
+        </div>
+      </div>
+      <div class="scope-frame">
+        <div class="scope-titlebar">
+          <div class="scope-dot" style="background:#4af"></div>
+          <span class="scope-title-text">VECTOR · Diamond · punto de negro en origen</span>
+        </div>
+        <div class="scope-body">
+          <canvas id="cv-black-vec" width="320" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hbox amber"><p><strong>Error frecuente:</strong> Ajustar el negro con la imagen activa (no con iris cerrado). La señal de imagen enmascara el nivel real del negro y produce un ajuste incorrecto. Siempre cerrar el iris o usar el modo de test de la CCU antes de ajustar MASTER BLACK.</p></div>
+</section>
+
+<!-- S5 - BLANCO -->
+<section class="section" id="s5">
+  <div class="section-header">
+    <div class="step-badge">05</div>
+    <div class="section-meta">
+      <div class="section-eyebrow">Calibración de señal</div>
+      <h2 class="section-title">Ajuste del nivel de blanco y ganancia</h2>
+    </div>
+  </div>
+  <p class="section-desc">El nivel de blanco define el límite superior de la señal de luminancia. En broadcast HD debe alcanzar exactamente 100 IRE (700 mV) con la carta de referencia. No debe superar 109 IRE (superwhite) en ningún caso, ya que puede causar saturación en la transmisión.</p>
+
+  <div class="gA" style="margin-bottom:20px">
+    <div>
+      <div class="card accent-green" style="margin-bottom:16px">
+        <div class="card-label green">Valores de referencia</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+          <div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-bottom:3px">Blanco 100%</div><div class="card-val green">100 IRE</div></div>
+          <div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-bottom:3px">En mV (BT.709)</div><div class="card-val green">700 mV</div></div>
+          <div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-bottom:3px">Superwhite máx.</div><div class="card-val amber">109 IRE</div></div>
+          <div><div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-bottom:3px">Recorte (clip)</div><div class="card-val red">&gt; 109 IRE</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label amber">Control OCP 400</div>
+        <div class="ctrl-path" style="display:block;margin-top:8px">MASTER GAIN</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.6">La ganancia en el OCP 400 puede estar en dB (0 dB = nominal, +3 dB, +6 dB, +9 dB) o como control de nivel continuo según el modelo de CCU conectado. Para calibración, usar 0 dB y ajustar con el control de nivel si está disponible.</div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div class="card-label green">Procedimiento</div>
+        <div class="checklist" style="margin-top:8px">
+          <div class="chk"><div class="chk-dot g"></div><span>Apuntar la cámara a la zona de blanco 100% de la carta (chip blanco central o carta blanca uniforme)</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Abrir el iris hasta el valor de exposición correcto (histograma centrado o según diafragma de referencia)</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Verificar en waveform Y: el pico de luminancia del chip blanco debe tocar exactamente 100 IRE</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Ajustar <strong>MASTER GAIN</strong> en OCP 400 hasta alcanzar 100 IRE</span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Verificar que la parte superior de la traza es plana (no recortada). Una señal recortada forma una meseta horizontal — señal de clip</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Verificar en RGB Parade: los 3 canales deben llegar a 100 IRE simultáneamente</span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Si un canal llega antes que los otros a 100 IRE: desequilibrio de blanco → corregir en paso 07</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="scope-frame" style="margin-bottom:12px">
+        <div class="scope-titlebar">
+          <div class="scope-dot" style="background:#4f4"></div>
+          <span class="scope-title-text">WAVEFORM · RGB Parade · barras EBU</span>
+        </div>
+        <div class="scope-body">
+          <canvas id="cv-white-wf" width="320" height="170"></canvas>
+        </div>
+      </div>
+      <div class="scope-frame">
+        <div class="scope-titlebar">
+          <div class="scope-dot" style="background:#4af"></div>
+          <span class="scope-title-text">VECTOR · Diamond · saturación correcta</span>
+        </div>
+        <div class="scope-body">
+          <canvas id="cv-white-vec" width="320" height="190"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S6 - DOBLE DIAMANTE INTRO -->
+<section class="section" id="s6">
+  <div class="section-header">
+    <div class="step-badge">06</div>
+    <div class="section-meta">
+      <div class="section-eyebrow">Técnica de referencia</div>
+      <h2 class="section-title">El doble diamante — grises y colores simultáneos</h2>
+    </div>
+  </div>
+  <p class="section-desc">La técnica del doble diamante superpone dos trazas de referencia en el mismo vectorscopio Diamond del LV5350: el diamante exterior (colores EBU saturados) y el eje de grises interior (escala neutra de la carta). Esta combinación permite detectar y corregir simultáneamente los desequilibrios de color en zonas neutras y en colores saturados.</p>
+
+  <div class="g2" style="margin-bottom:20px">
+    <div>
+      <div class="scope-frame">
+        <div class="scope-titlebar">
+          <div class="scope-dot" style="background:#4af"></div>
+          <span class="scope-title-text">VECTOR · Doble diamante · estado calibrado ideal</span>
+        </div>
+        <div class="scope-body">
+          <canvas id="cv-dbl-ideal" width="360" height="320"></canvas>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="card-label cyan">Leyenda del doble diamante</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2)">
+            <div style="width:28px;height:2px;background:rgba(0,200,255,0.85);flex-shrink:0"></div>
+            <span>Diamante exterior — 6 colores primarios/complementarios EBU. Verifica saturación y hue.</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2)">
+            <div style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.85);flex-shrink:0"></div>
+            <span>Puntos blancos — chips de la escala de grises (10%, 30%, 50%, 70%, 90%). Deben estar en el eje central.</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2)">
+            <div style="width:10px;height:10px;border-radius:50%;background:rgba(0,255,100,0.85);flex-shrink:0"></div>
+            <span>Origen verde — punto de negro neutro. Referencia central de ambos diamantes.</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2)">
+            <div style="width:28px;height:1px;border-top:1px dashed rgba(255,175,0,0.6);flex-shrink:0"></div>
+            <span>Línea fleshtone — referencia de tono de piel (aproximadamente entre Ye y R, 11h en el reloj del vectorscopio).</span>
+          </div>
+        </div>
+      </div>
+      <div class="card accent-amber">
+        <div class="card-label amber">Carta de calibración necesaria</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-top:6px">Para usar el doble diamante se necesita una carta que incluya <strong style="color:var(--text)">escala de grises integrada con los chips de color</strong> en el mismo plano focal:<br><br>
+        · DSC Labs ChartBall / Combi<br>
+        · X-Rite ColorChecker Video<br>
+        · Tiffen DSC One-Shot<br><br>
+        Las barras EBU estándar no generan eje de grises. Son útiles solo para el diamante exterior.</div>
+      </div>
+      <div class="card">
+        <div class="card-label green">Diagnóstico rápido por forma</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-top:6px">
+        <strong style="color:var(--text)">Eje de grises recto en el origen + diamante exterior centrado:</strong> calibración correcta.<br>
+        <strong style="color:var(--amber)">Eje desviado horizontal (±Cr):</strong> tint rojo o cian en neutros.<br>
+        <strong style="color:var(--amber)">Eje desviado vertical (±Cb):</strong> tint verde o magenta en neutros.<br>
+        <strong style="color:var(--amber)">Diamante exterior rotado + eje recto:</strong> error de hue/phase puro.<br>
+        <strong style="color:var(--red)">Eje con forma de S:</strong> gamma diferencial entre canales R/G/B.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- S7 - GRISES -->
+<section class="section" id="s7">
+  <div class="section-header">
+    <div class="step-badge">07</div>
+    <div class="section-meta">
+      <div class="section-eyebrow">Calibración de color</div>
+      <h2 class="section-title">Balance de color — calibración del eje de grises</h2>
+    </div>
+  </div>
+  <p class="section-desc">Los chips neutros de la carta deben trazar exactamente sobre el eje central del vectorscopio diamante (Cr = 0, Cb = 0) independientemente de su nivel de luminancia. Cualquier desviación lateral revela un tint de color en las zonas neutras. Se corrige con los 4 controles de balance de la CCU vía OCP 400.</p>
+
+  <div class="gA" style="margin-bottom:20px">
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-label amber">Controles OCP 400 — orden de ajuste</div>
+        <div style="margin-top:10px">
+          <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--green);background:var(--green-dim);border:1px solid rgba(0,232,122,.3);border-radius:4px;padding:2px 7px;flex-shrink:0">1°</span>
+            <div>
+              <div class="ctrl-path">R-B BLACK</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:3px">Corrige el tint de color en los grises <em>oscuros</em> (negro y sombras). Mueve el punto de negro en el eje horizontal Cr del vectorscopio.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--green);background:var(--green-dim);border:1px solid rgba(0,232,122,.3);border-radius:4px;padding:2px 7px;flex-shrink:0">2°</span>
+            <div>
+              <div class="ctrl-path">G-B BLACK</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:3px">Corrige el tint en sombras en el eje vertical Cb (verde/magenta). Ajustar después de R-B Black.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--amber);background:var(--amber-dim);border:1px solid rgba(245,166,35,.3);border-radius:4px;padding:2px 7px;flex-shrink:0">3°</span>
+            <div>
+              <div class="ctrl-path">R-B WHITE</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:3px">Corrige el tint en los grises <em>claros</em> (altas luces y blancos). Actúa sobre el extremo superior del eje de grises.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--amber);background:var(--amber-dim);border:1px solid rgba(245,166,35,.3);border-radius:4px;padding:2px 7px;flex-shrink:0">4°</span>
+            <div>
+              <div class="ctrl-path">G-B WHITE</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:3px">Corrige el tint verde/magenta en altas luces. Ajustar al final para no deshacer los ajustes anteriores.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label green">Procedimiento en el LV5350</div>
+        <div class="checklist" style="margin-top:8px">
+          <div class="chk"><div class="chk-dot g"></div><span>Apuntar la cámara a la escala de grises de la carta</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>En LV5350: botón CURSOR + perilla → posicionar sobre el punto de gris más oscuro</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Leer los valores Cr y Cb que aparecen en la pantalla del LV5350</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Si Cr ≠ 0: ajustar <strong>R-B BLACK</strong> hasta que Cr = 0 en ese punto</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Si Cb ≠ 0: ajustar <strong>G-B BLACK</strong> hasta que Cb = 0</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Mover el cursor al chip de gris más claro (90%)</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Ajustar <strong>R-B WHITE</strong> y <strong>G-B WHITE</strong> hasta Cr=0, Cb=0 en el blanco</span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Verificar que los chips intermedios (30%, 50%, 70%) también quedan próximos al eje — tolerancia ±1 unidad Cr/Cb</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="scope-frame" style="margin-bottom:12px">
+        <div class="scope-titlebar">
+          <div class="scope-dot" style="background:#aaa"></div>
+          <span class="scope-title-text">VECTOR · Diamond · eje de grises con tint rojo (antes)</span>
+        </div>
+        <div class="scope-body">
+          <canvas id="cv-grey-before" width="320" height="210"></canvas>
+        </div>
+      </div>
+      <div class="scope-frame">
+        <div class="scope-titlebar">
+          <div class="scope-dot" style="background:#4f4"></div>
+          <span class="scope-title-text">VECTOR · Diamond · eje de grises corregido (después)</span>
+        </div>
+        <div class="scope-body">
+          <canvas id="cv-grey-after" width="320" height="210"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <table class="ref-table">
+    <thead><tr><th>Chip de gris</th><th>Luminancia (IRE)</th><th>Cr objetivo</th><th>Cb objetivo</th><th>Control OCP si Cr≠0</th><th>Control OCP si Cb≠0</th></tr></thead>
+    <tbody>
+      <tr><td>Negro (0%)</td><td>0 IRE</td><td class="ok-val">0</td><td class="ok-val">0</td><td>R-B BLACK</td><td>G-B BLACK</td></tr>
+      <tr><td>Gris oscuro (10%)</td><td>~10 IRE</td><td class="ok-val">0</td><td class="ok-val">0</td><td>R-B BLACK</td><td>G-B BLACK</td></tr>
+      <tr><td>Gris medio-bajo (30%)</td><td>~30 IRE</td><td class="ok-val">0</td><td class="ok-val">0</td><td>R-B combinado</td><td>G-B combinado</td></tr>
+      <tr><td>Gris medio (50%)</td><td>~50 IRE</td><td class="ok-val">0</td><td class="ok-val">0</td><td>R-B combinado</td><td>G-B combinado</td></tr>
+      <tr><td>Gris claro (70%)</td><td>~70 IRE</td><td class="ok-val">0</td><td class="ok-val">0</td><td>R-B WHITE</td><td>G-B WHITE</td></tr>
+      <tr><td>Blanco (90–100%)</td><td>90–100 IRE</td><td class="ok-val">0</td><td class="ok-val">0</td><td>R-B WHITE</td><td>G-B WHITE</td></tr>
+    </tbody>
+  </table>
+
+  <div class="hbox red" style="margin-top:16px"><p><strong>Gamma diferencial:</strong> Si el eje de grises tiene forma de curva o S en lugar de ser una línea recta, existe un error de gamma diferencial entre canales R, G y B. Esto requiere ajuste de la curva de gamma por canal en la CCU (GV LDK: menú GAMMA R/G/B individual). No se puede corregir solo con los controles de balance del OCP 400.</p></div>
+</section>
+
+<!-- S8 - SAT + HUE -->
+<section class="section" id="s8">
+  <div class="section-header">
+    <div class="step-badge">08</div>
+    <div class="section-meta">
+      <div class="section-eyebrow">Calibración de color</div>
+      <h2 class="section-title">Saturación y fase de color — diamante exterior</h2>
+    </div>
+  </div>
+  <p class="section-desc">Una vez corregidos los grises, se ajusta el diamante exterior (colores EBU). Los 6 vértices del rombo de traza deben tocar el interior de los target boxes sin sobrepasarlos (saturación) y el eje vertical del diamante debe alinearse con la graticule (fase/hue).</p>
+
+  <div class="g2" style="margin-bottom:20px">
+    <div>
+      <div class="scope-frame" style="margin-bottom:12px">
+        <div class="scope-titlebar">
+          <div class="scope-dot" style="background:#4af"></div>
+          <span class="scope-title-text">VECTOR · Diamond · saturación y fase · ajuste interactivo</span>
+        </div>
+        <div class="scope-body">
+          <canvas id="cv-sat-hue" width="360" height="300"></canvas>
+        </div>
+        <div style="padding:10px 12px;border-top:1px solid var(--border)">
+          <div class="ctrl-row">
+            <label>COLOUR GAIN (sat.)</label>
+            <input type="range" id="sl-sat" min="30" max="115" value="82" step="1" oninput="updateSatHue()">
+            <span class="ctrl-readout" id="ro-sat">82%</span>
+          </div>
+          <div class="ctrl-row">
+            <label>HUE / PHASE</label>
+            <input type="range" id="sl-hue" min="-45" max="45" value="0" step="1" oninput="updateSatHue()">
+            <span class="ctrl-readout" id="ro-hue">0°</span>
+          </div>
+        </div>
+      </div>
+      <div id="sat-status" class="hbox green"><p id="sat-msg">Saturación correcta · Fase alineada</p></div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-label amber">Controles OCP 400</div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div class="ctrl-path">COLOUR GAIN → Saturación</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.6">Expande o contrae el diamante radialmente. Girar en sentido horario para aumentar saturación. El objetivo: los 6 vértices tocan el interior de los target boxes EBU.</div>
+          </div>
+          <div>
+            <div class="ctrl-path">HUE / PHASE → Fase de color</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.6">Gira toda la traza de color. El eje Ye (arriba) – B (abajo) del diamante debe quedar perfectamente vertical respecto a la graticule del LV5350.</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label green">Procedimiento</div>
+        <div class="checklist" style="margin-top:8px">
+          <div class="chk"><div class="chk-dot g"></div><span>Apuntar la cámara a los chips de color de la carta (barras EBU o chips de color de la DSC Labs)</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Verificar en vectorscopio: ¿está el diamante rotado? → Ajustar <strong>HUE/PHASE</strong> hasta alinear el eje vertical</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>¿Los vértices quedan cortos de los targets? → Aumentar <strong>COLOUR GAIN</strong></span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>¿Los vértices superan los targets? → Reducir <strong>COLOUR GAIN</strong></span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Activar en LV5350: GAMUT → Gamut Error: ON → cualquier desbordamiento del gamut se marcará en rojo automáticamente</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Verificar la línea fleshtone: hacer un plano de piel y verificar que la traza cae en la zona correcta (entre Ye y R, ~11h del vectorscopio)</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Activar en LV5350 Picture: <strong>False Color → ON</strong> para verificar visualmente el tono de piel en la zona naranja/amarilla</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="card accent-red">
+      <div class="card-label red">Sobresat. ilegal</div>
+      <canvas id="cv-over" width="180" height="150"></canvas>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;font-family:var(--font-mono)">Vértices fuera de targets<br>→ Reducir COLOUR GAIN</div>
+    </div>
+    <div class="card accent-green">
+      <div class="card-label green">Calibrado correcto</div>
+      <canvas id="cv-correct" width="180" height="150"></canvas>
+      <div style="font-size:11px;color:var(--green);margin-top:6px;font-family:var(--font-mono)">Vértices en targets EBU<br>→ Sin ajuste necesario</div>
+    </div>
+    <div class="card accent-amber">
+      <div class="card-label amber">Hue rotado</div>
+      <canvas id="cv-hue-err" width="180" height="150"></canvas>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;font-family:var(--font-mono)">Diamante girado<br>→ Corregir HUE/PHASE</div>
+    </div>
+  </div>
+</section>
+
+<!-- S9 - MATCHING -->
+<section class="section" id="s9">
+  <div class="section-header">
+    <div class="step-badge">09</div>
+    <div class="section-meta">
+      <div class="section-eyebrow">Multicámara</div>
+      <h2 class="section-title">Matching de 3 cámaras EFP</h2>
+    </div>
+  </div>
+  <p class="section-desc">Una vez calibradas individualmente las 3 cámaras, se realiza el proceso de matching para que produzcan señales idénticas ante la misma escena. El LV5350 permite alternar entre SDI A (CAM 1 referencia) y SDI B (CAM 2 o 3 a ajustar) con el botón INPUT. La diferencia admisible entre cámaras en broadcast es ≤ 2 IRE en cualquier canal.</p>
+
+  <div class="gA" style="margin-bottom:20px">
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-label green">Flujo de trabajo LV5350 — matching</div>
+        <div class="checklist" style="margin-top:10px">
+          <div class="chk"><div class="chk-dot g"></div><span><strong>CAM 1 → SDI A:</strong> Conectar cámara 1 (master) a la entrada SDI A del LV5350. Esta es la referencia que no se toca.</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span><strong>CAM 2 → SDI B:</strong> Conectar cámara 2 a SDI B. Pulsar INPUT para alternar entre A y B y comparar las trazas.</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Apuntar las 3 cámaras a la misma carta en condiciones de luz idénticas (mismo nivel, misma temperatura de color).</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Comparar el tamaño del diamante de CAM 2 con el de CAM 1 alternando con INPUT → ajustar COLOUR GAIN de CAM 2 en OCP 400</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Comparar la rotación del diamante → ajustar HUE/PHASE de CAM 2</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Comparar el eje de grises → ajustar R-B/G-B Black y White de CAM 2</span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Con iris cerrado: comparar el punto de negro de CAM 2 vs CAM 1 → ajustar MASTER BLACK y R-B/G-B BLACK</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Repetir todo el proceso para CAM 3 (SDI B) vs CAM 1 (SDI A)</span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Hacer una toma de prueba con las 3 cámaras en corte. Verificar que el paso de una a otra es imperceptible en monitor de referencia.</span></div>
+        </div>
+      </div>
+      <div class="card accent-amber">
+        <div class="card-label amber">Tolerancias broadcast EBU R103</div>
+        <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:8px">
+          <tr><td style="color:var(--text3);padding:4px 0;border-bottom:1px solid var(--border)">Diferencia de luminancia (Y)</td><td style="text-align:right;font-family:var(--font-mono);color:var(--green);border-bottom:1px solid var(--border)">≤ 2 IRE</td></tr>
+          <tr><td style="color:var(--text3);padding:4px 0;border-bottom:1px solid var(--border)">Diferencia de crominancia (Cb/Cr)</td><td style="text-align:right;font-family:var(--font-mono);color:var(--green);border-bottom:1px solid var(--border)">≤ 2 IRE</td></tr>
+          <tr><td style="color:var(--text3);padding:4px 0;border-bottom:1px solid var(--border)">Error de hue visible entre cámaras</td><td style="text-align:right;font-family:var(--font-mono);color:var(--amber);border-bottom:1px solid var(--border)">≥ 3°</td></tr>
+          <tr><td style="color:var(--text3);padding:4px 0">Diferencia en negro (iris cerrado)</td><td style="text-align:right;font-family:var(--font-mono);color:var(--green)">≤ 0.5 IRE</td></tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="scope-frame" style="margin-bottom:12px">
+        <div class="scope-titlebar">
+          <div class="scope-dot" style="background:#4af"></div>
+          <span class="scope-title-text">SDI-A · CAM 1 (referencia master)</span>
+        </div>
+        <div class="scope-body">
+          <canvas id="cv-cam1" width="320" height="200"></canvas>
+        </div>
+      </div>
+      <div class="scope-frame" style="margin-bottom:12px">
+        <div class="scope-titlebar">
+          <div class="scope-dot" style="background:#fa4"></div>
+          <span class="scope-title-text">SDI-B · CAM 2 — antes del matching</span>
+        </div>
+        <div class="scope-body">
+          <canvas id="cv-cam2-before" width="320" height="200"></canvas>
+        </div>
+      </div>
+      <div class="scope-frame">
+        <div class="scope-titlebar">
+          <div class="scope-dot" style="background:#4f4"></div>
+          <span class="scope-title-text">SDI-B · CAM 2 — tras ajuste matching OK</span>
+        </div>
+        <div class="scope-body">
+          <canvas id="cv-cam2-after" width="320" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S10 - VERIFICACIÓN -->
+<section class="section" id="s10">
+  <div class="section-header">
+    <div class="step-badge">10</div>
+    <div class="section-meta">
+      <div class="section-eyebrow">Cierre del proceso</div>
+      <h2 class="section-title">Verificación final y documentación</h2>
+    </div>
+  </div>
+  <p class="section-desc">Con las 3 cámaras calibradas y niveladas entre sí, se realiza una verificación final con escena real y se documenta el estado de calibración. Guardar los valores del OCP 400 y una captura del LV5350 como referencia para replicar o verificar la calibración en futuras sesiones.</p>
+
+  <div class="g2" style="margin-bottom:20px">
+    <div>
+      <table class="ref-table">
+        <thead><tr><th>Parámetro</th><th>CAM 1</th><th>CAM 2</th><th>CAM 3</th></tr></thead>
+        <tbody>
+          <tr><td>Negro (0 IRE)</td><td class="ok-val">✓</td><td class="ok-val">✓</td><td class="ok-val">✓</td></tr>
+          <tr><td>Blanco (100 IRE)</td><td class="ok-val">✓</td><td class="ok-val">✓</td><td class="ok-val">✓</td></tr>
+          <tr><td>Eje grises Cr=0</td><td class="ok-val">✓</td><td class="ok-val">✓</td><td class="ok-val">✓</td></tr>
+          <tr><td>Eje grises Cb=0</td><td class="ok-val">✓</td><td class="ok-val">✓</td><td class="ok-val">✓</td></tr>
+          <tr><td>Saturación (targets)</td><td class="ok-val">✓</td><td class="ok-val">✓</td><td class="ok-val">✓</td></tr>
+          <tr><td>Hue alineado</td><td class="ok-val">✓</td><td class="ok-val">✓</td><td class="ok-val">✓</td></tr>
+          <tr><td>Diff. inter-cámaras</td><td style="color:var(--text3)">ref.</td><td class="ok-val">≤ 2 IRE</td><td class="ok-val">≤ 2 IRE</td></tr>
+          <tr><td>Fleshtone line</td><td class="ok-val">✓</td><td class="ok-val">✓</td><td class="ok-val">✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-label green">Documentación recomendada</div>
+        <div class="checklist" style="margin-top:8px">
+          <div class="chk"><div class="chk-dot g"></div><span>Captura de pantalla USB del LV5350 con el doble diamante de las 3 cámaras en estado calibrado</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Guardar preset en la CCU si el modelo Grass Valley lo permite (menú SCENE FILE o USER FILE)</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Anotar los valores finales de Master Black, Master Gain, R-B Black/White y G-B Black/White de cada CCU</span></div>
+          <div class="chk"><div class="chk-dot g"></div><span>Registrar la temperatura de color de la iluminación y el tipo de carta usada</span></div>
+          <div class="chk"><div class="chk-dot a"></div><span>Si hay cambio de temperatura de color durante el rodaje (exterior → interior, día → noche), la calibración de blancos deberá repetirse</span></div>
+        </div>
+      </div>
+      <div class="card accent-green">
+        <div class="card-label green">Resumen de la secuencia completa</div>
+        <div style="margin-top:10px">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">01 Conexiones + sync + 15 min calentamiento</span><span class="ok-val">Preparación</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">02 OCP 400 + LV5350 configurados</span><span class="ok-val">Config.</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">03 MASTER BLACK → 0 IRE (iris cerrado)</span><span class="ok-val">Negro</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">04 MASTER GAIN → 100 IRE (carta blanca)</span><span class="ok-val">Blanco</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">05 R-B / G-B Black → grises oscuros Cr=Cb=0</span><span class="ok-val">Grises</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">06 R-B / G-B White → grises claros Cr=Cb=0</span><span class="ok-val">Grises</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">07 COLOUR GAIN → vértices en targets EBU</span><span class="ok-val">Saturación</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">08 HUE/PHASE → eje Ye–B vertical</span><span class="ok-val">Fase</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">09 Repetir pasos 03–08 para CAM 2 y CAM 3</span><span class="ok-val">×3</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0"><span style="color:var(--text3)">10 Matching SDI A vs B · diff ≤ 2 IRE · Captura</span><span class="ok-val">Matching</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scope-frame">
+    <div class="scope-titlebar">
+      <div class="scope-dot" style="background:#4af"></div>
+      <span class="scope-title-text">VECTOR · Doble diamante · 3 cámaras calibradas — estado final de referencia</span>
+    </div>
+    <div class="scope-body">
+      <canvas id="cv-final" width="700" height="280"></canvas>
+    </div>
+  </div>
+
+</section>
+
+</main>
+</div>
+
+<script>
+// ── SHARED DRAWING UTILITIES ──────────────────────────────────────────────
+const TGTS=[
+  {n:'Ye',a:-Math.PI/2,  c:'#cccc00'},
+  {n:'R', a:-Math.PI/6,  c:'#dd3333'},
+  {n:'Mg',a: Math.PI/6,  c:'#cc00cc'},
+  {n:'B', a: Math.PI/2,  c:'#5555ee'},
+  {n:'Cy',a: 5*Math.PI/6,c:'#00cccc'},
+  {n:'G', a:-5*Math.PI/6,c:'#00cc00'},
+];
+
+function scopeBg(ctx,W,H){
+  ctx.fillStyle='#06080f';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(0,200,80,0.08)';ctx.lineWidth=0.4;
+  for(let i=0;i<=10;i++){
+    const x=W*i/10,y=H*i/10;
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+  }
+}
+
+function graticule(ctx,cx,cy,R){
+  ctx.strokeStyle='rgba(0,220,80,0.25)';ctx.lineWidth=0.9;
+  ctx.beginPath();[[0,-1],[1,0],[0,1],[-1,0]].forEach(([dx,dy],i)=>i?ctx.lineTo(cx+dx*R,cy+dy*R):ctx.moveTo(cx+dx*R,cy+dy*R));
+  ctx.closePath();ctx.stroke();
+  [0.33,0.66,1].forEach(f=>{ctx.strokeStyle=`rgba(0,200,70,${0.04+f*0.08})`;ctx.lineWidth=0.4;ctx.beginPath();ctx.arc(cx,cy,R*f,0,Math.PI*2);ctx.stroke();});
+  ctx.strokeStyle='rgba(0,200,70,0.15)';ctx.lineWidth=0.4;
+  ctx.beginPath();ctx.moveTo(cx-R*1.15,cy);ctx.lineTo(cx+R*1.15,cy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,cy-R*1.15);ctx.lineTo(cx,cy+R*1.15);ctx.stroke();
+  ctx.fillStyle='rgba(0,200,70,0.4)';ctx.font='8px monospace';
+  ctx.textAlign='center';ctx.fillText('Cb',cx,cy-R*1.12);
+  ctx.textAlign='start';ctx.fillText('Cr',cx+R*1.12+2,cy+3);
+}
+
+function targets(ctx,cx,cy,R){
+  TGTS.forEach(t=>{
+    const tx=cx+Math.cos(t.a)*R*0.87,ty=cy+Math.sin(t.a)*R*0.87;
+    ctx.strokeStyle=t.c+'cc';ctx.lineWidth=1;ctx.strokeRect(tx-6,ty-6,12,12);
+    ctx.fillStyle=t.c+'20';ctx.fillRect(tx-6,ty-6,12,12);
+    ctx.fillStyle=t.c;ctx.font='8px monospace';ctx.textAlign='center';
+    ctx.fillText(t.n,tx,ty+(t.a>0.1?-10:16));
+  });
+}
+
+function colorDiamond(ctx,cx,cy,R,sat,hueRad,stroke,alpha){
+  const tR=R*0.87*(sat/82),hr=hueRad||0;
+  ctx.strokeStyle=(stroke||'rgba(0,200,255,')+((alpha||0.9)+')');
+  ctx.lineWidth=1.6;
+  ctx.beginPath();TGTS.forEach((t,i)=>{const x=cx+Math.cos(t.a+hr)*tR,y=cy+Math.sin(t.a+hr)*tR;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.closePath();ctx.stroke();
+  ctx.fillStyle=(stroke||'rgba(0,200,255,')+('0.05)');
+  ctx.beginPath();TGTS.forEach((t,i)=>{const x=cx+Math.cos(t.a+hr)*tR,y=cy+Math.sin(t.a+hr)*tR;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.closePath();ctx.fill();
+  TGTS.forEach(t=>{const x=cx+Math.cos(t.a+hr)*tR,y=cy+Math.sin(t.a+hr)*tR;ctx.fillStyle=t.c;ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();});
+}
+
+function greyAxis(ctx,cx,cy,R,ox,oy){
+  const lv=[0.06,0.2,0.38,0.58,0.78,0.96];
+  lv.forEach(l=>{
+    const b=Math.round(l*255),px=cx+(ox||0)*R*0.28*l,py=cy+(oy||0)*R*0.28*l;
+    ctx.fillStyle=`rgb(${b},${b},${b})`;ctx.beginPath();ctx.arc(px,py,3.5,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=0.4;ctx.beginPath();ctx.arc(px,py,3.5,0,Math.PI*2);ctx.stroke();
+  });
+  if(Math.abs(ox||0)>0.05||Math.abs(oy||0)>0.05){
+    ctx.strokeStyle='rgba(255,220,60,0.3)';ctx.lineWidth=0.7;ctx.setLineDash([2,3]);
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+(ox||0)*R*0.28*0.96,cy+(oy||0)*R*0.28*0.96);ctx.stroke();ctx.setLineDash([]);
+  }
+  ctx.fillStyle='rgba(0,255,100,0.9)';ctx.beginPath();ctx.arc(cx,cy,2.5,0,Math.PI*2);ctx.fill();
+}
+
+function fleshtone(ctx,cx,cy,R){
+  const fa=-2.05;
+  ctx.strokeStyle='rgba(255,165,0,0.35)';ctx.lineWidth=0.7;ctx.setLineDash([2,3]);
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(fa)*R*0.62,cy+Math.sin(fa)*R*0.62);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,165,0,0.55)';ctx.font='7px monospace';ctx.textAlign='start';
+  ctx.fillText('piel',cx+Math.cos(fa)*R*0.64+2,cy+Math.sin(fa)*R*0.64);
+}
+
+function fullScope(id,sat,hue,gox,goy){
+  const cv=document.getElementById(id);if(!cv)return;
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height,cx=W/2,cy=H/2,R=Math.min(W,H)*0.38;
+  scopeBg(ctx,W,H);graticule(ctx,cx,cy,R);targets(ctx,cx,cy,R);
+  colorDiamond(ctx,cx,cy,R,sat||82,(hue||0)*Math.PI/180);
+  greyAxis(ctx,cx,cy,R,gox||0,goy||0);
+  fleshtone(ctx,cx,cy,R);
+}
+
+// ── WAVEFORM ──────────────────────────────────────────────────────────────
+function drawWF(id,type){
+  const cv=document.getElementById(id);if(!cv)return;
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  scopeBg(ctx,W,H);
+  const yIRE=ire=>{return H-8-(ire/110)*(H-16);};
+  [0,20,40,60,80,100].forEach(ire=>{
+    const y=yIRE(ire);
+    ctx.strokeStyle='rgba(0,200,70,0.18)';ctx.lineWidth=0.5;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+    ctx.fillStyle='rgba(0,200,70,0.45)';ctx.font='8px monospace';ctx.textAlign='left';ctx.fillText(ire,2,y-2);
+  });
+  if(type==='black'){
+    const y=yIRE(2);
+    ctx.strokeStyle='rgba(0,200,255,0.9)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(8,y);ctx.lineTo(W-8,y);ctx.stroke();
+    ctx.strokeStyle='rgba(255,80,80,0.4)';ctx.lineWidth=0.7;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(0,yIRE(0));ctx.lineTo(W,yIRE(0));ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,80,80,0.5)';ctx.font='8px monospace';ctx.textAlign='start';ctx.fillText('0 IRE',4,yIRE(0)-3);
+    ctx.fillStyle='rgba(0,200,255,0.7)';ctx.fillText('señal negro OK',W/2-30,y-4);
+  } else if(type==='rgb'){
+    const bars=[100,75,56,69,56,44,31];
+    const cols=['#eee','#ee0','#0ee','#0e0','#e0e','#e00','#00e'];
+    const bw=(W-16)/bars.length;
+    bars.forEach((ire,i)=>{const bh=(ire/110)*(H-16);ctx.fillStyle=cols[i]+'44';ctx.fillRect(8+i*bw,H-8-bh,bw-2,bh);});
+    const y100=yIRE(100);
+    ctx.strokeStyle='rgba(255,200,0,0.7)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(8,y100);ctx.lineTo(W-8,y100);ctx.stroke();
+    ctx.fillStyle='rgba(255,200,0,0.7)';ctx.font='8px monospace';ctx.fillText('100 IRE',4,y100-3);
+  }
+}
+
+// ── MINI SCOPE ──────────────────────────────────────────────────────────────
+function miniScope(id,sat,hue,gox,goy,dimDiamond){
+  const cv=document.getElementById(id);if(!cv)return;
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height,cx=W/2,cy=H/2,R=Math.min(W,H)*0.38;
+  scopeBg(ctx,W,H);graticule(ctx,cx,cy,R);targets(ctx,cx,cy,R);
+  colorDiamond(ctx,cx,cy,R,sat||82,(hue||0)*Math.PI/180,'rgba(0,200,255,',dimDiamond?0.45:0.9);
+  greyAxis(ctx,cx,cy,R,gox||0,goy||0);
+}
+
+// ── DRAW ALL STATIC CANVASES ──────────────────────────────────────────────
+function drawAll(){
+  fullScope('cv-setup',82,0,0,0);
+  drawWF('cv-black-wf','black');
+  // black vec
+  (()=>{const cv=document.getElementById('cv-black-vec');if(!cv)return;const ctx=cv.getContext('2d'),W=cv.width,H=cv.height,cx=W/2,cy=H/2,R=Math.min(W,H)*0.38;scopeBg(ctx,W,H);graticule(ctx,cx,cy,R);targets(ctx,cx,cy,R);ctx.fillStyle='rgba(0,255,100,0.9)';ctx.beginPath();ctx.arc(cx,cy,3,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(0,255,100,0.4)';ctx.lineWidth=0.8;ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);ctx.stroke();ctx.fillStyle='rgba(0,200,255,0.6)';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText('Negro calibrado · Cr=0 Cb=0',cx,H-10);})();
+  drawWF('cv-white-wf','rgb');
+  fullScope('cv-white-vec',82,0,0,0);
+  // double diamond ideal
+  fullScope('cv-dbl-ideal',82,0,0,0);
+  // grey before (tint rojo)
+  miniScope('cv-grey-before',82,0,1.1,0,true);
+  // grey after (correcto)
+  miniScope('cv-grey-after',82,0,0,0,false);
+  // sat/hue interactive (initial)
+  drawSatHue();
+  // mini scopes comparison
+  miniScope('cv-over',110,0,0,0,false);
+  miniScope('cv-correct',82,0,0,0,false);
+  miniScope('cv-hue-err',82,25,0,0,false);
+  // matching
+  fullScope('cv-cam1',82,0,0,0);
+  miniScope('cv-cam2-before',75,15,0.6,0.3,false);
+  fullScope('cv-cam2-after',82,0,0,0);
+  // final 3-cam panorama
+  drawFinal3Cam();
+}
+
+function drawSatHue(){
+  const sl_s=document.getElementById('sl-sat'),sl_h=document.getElementById('sl-hue');
+  const sat=sl_s?+sl_s.value:82,hue=sl_h?+sl_h.value:0;
+  const ro_s=document.getElementById('ro-sat'),ro_h=document.getElementById('ro-hue');
+  if(ro_s)ro_s.textContent=sat+'%';if(ro_h)ro_h.textContent=hue+'°';
+  fullScope('cv-sat-hue',sat,hue,0,0);
+  const box=document.getElementById('sat-status'),msg=document.getElementById('sat-msg');
+  if(msg){
+    const msgs=[];
+    if(sat<60)msgs.push('Muy desaturado → subir COLOUR GAIN');
+    else if(sat>103)msgs.push('Sobresat. ilegal → reducir COLOUR GAIN');
+    else if(sat<74)msgs.push('Saturación baja → ajustar COLOUR GAIN');
+    if(Math.abs(hue)>3)msgs.push('Fase desviada '+hue+'° → corregir HUE/PHASE');
+    msg.textContent=msgs.length?msgs.join(' · '):'Saturación correcta · Fase alineada';
+    if(box){box.className='hbox '+(msgs.length?'amber':'green');}
+  }
+}
+window.updateSatHue=drawSatHue;
+
+function drawFinal3Cam(){
+  const cv=document.getElementById('cv-final');if(!cv)return;
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  scopeBg(ctx,W,H);
+  const cams=[{cx:W/6,cy:H/2,R:H*0.38,col:'rgba(0,200,255,',label:'CAM 1'},{cx:W/2,cy:H/2,R:H*0.38,col:'rgba(0,230,120,',label:'CAM 2'},{cx:5*W/6,cy:H/2,R:H*0.38,col:'rgba(255,200,0,',label:'CAM 3'}];
+  cams.forEach(({cx,cy,R,col,label})=>{
+    graticule(ctx,cx,cy,R);targets(ctx,cx,cy,R);
+    colorDiamond(ctx,cx,cy,R,82,0,col,0.88);
+    greyAxis(ctx,cx,cy,R,0,0);
+    fleshtone(ctx,cx,cy,R);
+    ctx.fillStyle=col+'0.7)';ctx.font='bold 9px monospace';ctx.textAlign='center';ctx.fillText(label,cx,H-8);
+    ctx.fillStyle='rgba(0,255,100,0.6)';ctx.font='8px monospace';ctx.fillText('OK',cx,H-20);
+  });
+}
+
+// ── SIDEBAR NAV HIGHLIGHT ──────────────────────────────────────────────────
+function initNav(){
+  const items=document.querySelectorAll('.nav-item');
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const id='#'+e.target.id;
+        items.forEach(i=>{i.classList.toggle('active',i.getAttribute('href')===id);});
+      }
+    });
+  },{threshold:0.35});
+  document.querySelectorAll('section[id]').forEach(s=>obs.observe(s));
+}
+
+document.addEventListener('DOMContentLoaded',()=>{drawAll();initNav();});
+</script>
+</body>
+</html>
